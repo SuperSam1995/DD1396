@@ -4,16 +4,16 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
 	"log"
 	"math/cmplx"
 	"os"
+	"runtime"
 	"strconv"
 	"sync"
-	"fmt"
-	"runtime"
 )
 
 type ComplexFunc func(complex128) complex128
@@ -37,7 +37,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	fmt.Printf("Number of CPUs: " + strconv.Itoa(runtime.NumCPU()))
+	fmt.Print("Angtal CPU: " + strconv.Itoa(runtime.NumCPU()))
 }
 
 // CreatePng creates a PNG picture file with a Julia image of size n x n.
@@ -53,6 +53,8 @@ func CreatePng(filename string, f ComplexFunc, n int) (err error) {
 
 // Julia returns an image of size n x n of the Julia set for f.
 func Julia(f ComplexFunc, n int) image.Image {
+
+	// addar en ny wg
 	wg := new(sync.WaitGroup)
 	bounds := image.Rect(-n/2, -n/2, n/2, n/2)
 	img := image.NewRGBA(bounds)
@@ -61,11 +63,11 @@ func Julia(f ComplexFunc, n int) image.Image {
 		wg.Add(1)
 		go func(i int) {
 			for j := bounds.Min.Y; j < bounds.Max.Y; j++ {
-				n := Iterate(f, complex(float64(i)/s, float64(j)/s), 256)
-				r := uint8(0)
-				g := uint8(0)
-				b := uint8(n % 32 * 8)
-				img.Set(i, j, color.RGBA{r, g, b, 255})
+				a := Iterate(f, complex(float64(i)/s, float64(j)/s), 256)
+				b := uint8(0)
+				c := uint8(0)
+				d := uint8(a % 32 * 8)
+				img.Set(i, j, color.RGBA{b, c, d, 255})
 			}
 			wg.Done()
 		}(i)
