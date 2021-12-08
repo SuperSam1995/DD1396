@@ -16,17 +16,12 @@ func main() {
 	}
 
 	// Add a time limit for all requests made by this client.
-
-	//vi lägger till timeout
-	timeout := 10 * time.Second
-	client := &http.Client{Timeout: timeout}
+	client := &http.Client{Timeout: 10 * time.Second}
 
 	for {
 		before := time.Now()
-
-		//addar timeout till multiget
-
-		res := MultiGet(server, client, timeout)
+		//res := Get(server[0], client)
+		res := MultiGet(server, client)
 		after := time.Now()
 		fmt.Println("Response:", res)
 		fmt.Println("Time:", after.Sub(before))
@@ -64,24 +59,19 @@ func Get(url string, client *http.Client) *Response {
 // the response from the first server to answer with status code 200.
 // If none of the servers answer before timeout, the response is 503
 // – Service unavailable.
-func MultiGet(urls []string, client *http.Client, timeout time.Duration) (res *Response) {
-	ch := make(chan *Response, len(urls))
+func MultiGet(urls []string, client *http.Client) (res *Response) {
+	channel := make(chan *Response, len(urls)) // skapar en channel av typen "Response", samt med längden av urls
 	for _, url := range urls {
-		go func(url string) {
-			/*
-				read := Get(url, client)
-				if read.StatusCode == 200 {
-					ch <-read
-				} */
-			ch <- Get(url, client)
+		go func(url string) { // en go routine för varje url sträng
+			channel <- Get(url, client) // lägger in det vi får från "Get" in till channel
 		}(url)
 	}
-	response := <-ch
-	if response.StatusCode == 200 {
-		res = response
-	} else if response.StatusCode == 503 {
+	get_response := <-channel // hämtar svaren från channeln
+	fmt.Println(get_response)
+	if get_response.StatusCode == 200 {
+		res = get_response
+	} else if get_response.StatusCode == 503 {
 		res = &Response{"Service unavailable\n", 503}
 	}
-
-	return
+	return res
 }
